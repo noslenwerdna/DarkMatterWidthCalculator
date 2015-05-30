@@ -89,7 +89,7 @@ if __name__ == '__main__':
     formatter_class=ap.RawTextHelpFormatter)
     parser.add_argument(
         '--type', type=str,  
-        help='Symmetry of mediator. Must be vector or axial(-vector)')
+        help='Symmetry of mediator. Must be vector or axial')
     parser.add_argument(
         '--gQ', type=float, default=1., help='Coupling of mediator to quarks')
     parser.add_argument(
@@ -101,8 +101,10 @@ if __name__ == '__main__':
         '--mDM', type=float, help='Mass of mediator')
     args = parser.parse_args()
 
+    if len(sys.argv) == 1:
+        quit(parser)
     if not args.type == 'vector' and not args.type =='axial':
-        print 'type must be axial or vector\n\n'
+        print '\ntype must be axial or vector\n\n'
         quit(parser)
 
     print 'full mediator width={0:0.2f} GeV'.format(
