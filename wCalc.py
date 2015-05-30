@@ -105,5 +105,5 @@ if __name__ == '__main__':
         print 'type must be axial or vector\n\n'
         quit(parser)
 
-    print 'full mediator width={0} GeV'.format(
+    print 'full mediator width={0:0.2f} GeV'.format(
         wCalc(args.type, args.gQ, args.gDM, args.mMed, args.mDM))
