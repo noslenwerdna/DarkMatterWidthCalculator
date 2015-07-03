@@ -33,8 +33,9 @@ def swCalc(type, gQ, gDM, mMed, mDM):
     normFactorQQ = 1.
     vev = 246.
     betaExp = 0.
+    # http://pdg.lbl.gov/2013/tables/rpp2013-sum-quarks.pdf
     quarkName = ['u', 'd', 'c', 's', 't', 'b']
-    quarkMass = [2.3e-3, 4.8e-3, 1.275, 9.5e-2, 173.07, 4.66] # in GeV
+    quarkMass = [2.3e-3, 4.8e-3, 1.275, 9.5e-2, 173.21, 4.66] # in GeV
     ratioFuncQQ, betaQQ = list(), list() # lists containing entry for each quark
     if type == 'vector' or type == 'axial':
         normFactorQQ = (3. * gQ**2 * mMed)/(12. * m.pi)
@@ -135,7 +136,7 @@ def twCalc(type, gQ, gDM, mMed, mDM):
         'd': 4.8e-3,
         'c': 1.275,
         's': 9.5e-2,
-        't': 173.07,
+        't': 173.21,
         'b': 4.66,
     }
     width, massFactor, rootFactor = dict(), dict(), dict() 
