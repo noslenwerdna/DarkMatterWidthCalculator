@@ -34,7 +34,7 @@ def swCalc(type, gQ, gDM, mMed, mDM):
     vev = 246.
     betaExp = 0.
     quarkName = ['u', 'd', 'c', 's', 't', 'b']
-    quarkMass = [2.55e-3, 5.04e-3, 1.42, 1.01e-1, 172., 4.70] # in GeV
+    quarkMass = [2.3e-3, 4.8e-3, 1.275, 9.5e-2, 173.5, 4.65] # in GeV
     ratioFuncQQ, betaQQ = list(), list() # lists containing entry for each quark
     if type == 'vector' or type == 'axial':
         normFactorQQ = (3. * gQ**2 * mMed)/(12. * m.pi)
@@ -131,12 +131,12 @@ def twCalc(type, gQ, gDM, mMed, mDM):
     # Width Calculation. One mediator, one width for each quark in list.
     normFactor = 1.
     quarkMass = { 
-        'u': 2.55e-3,
-        'd': 5.04e-3,
-        'c': 1.42,
-        's': 1.01e-1,
-        't': 172.,
-        'b': 4.70,
+        'u': 2.3e-3,
+        'd': 4.8e-3,
+        'c': 1.275,
+        's': 9.5e-2,
+        't': 173.5,
+        'b': 4.65,
     }
     width, massFactor, rootFactor = dict(), dict(), dict() 
     if type == 'tchan':
