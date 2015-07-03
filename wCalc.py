@@ -158,7 +158,8 @@ def twCalc(type, gQ, gDM, mMed, mDM):
             else:
                 massFactor[quark] = 0.
                 rootFactor[quark] = 0.
-            width[quark] = normFactor * massFactor[quark] * m.sqrt(rootFactor[quark])
+            width[quark] = (normFactor * massFactor[quark] * 
+                            m.sqrt(rootFactor[quark]))
 
     return width
 
@@ -191,7 +192,8 @@ if __name__ == '__main__':
     formatter_class=ap.RawTextHelpFormatter)
     parser.add_argument(
         '--type', type=str,  
-        help='Symmetry of mediator. Must be vector or axial')
+        help=('Symmetry of mediator. '
+              'Must be vector, axial, scalar, pseudo, or tchan'))
     parser.add_argument(
         '--gQ', type=float, default=1., help='Coupling of mediator to quarks')
     parser.add_argument(
@@ -216,5 +218,9 @@ if __name__ == '__main__':
             swCalc(args.type, args.gQ, args.gDM, args.mMed, args.mDM))
     else: # tchannel 
         width = twCalc(args.type, args.gQ, args.gDM, args.mMed, args.mDM)
-        for q in width:
-            print 'eta_{0} width={1:0.8e} GeV'.format(q, width[q])
+        print 'eta_{0} width={1:0.8e} GeV'.format('u', width['u'])
+        print 'eta_{0} width={1:0.8e} GeV'.format('d', width['d'])
+        print 'eta_{0} width={1:0.8e} GeV'.format('c', width['c'])
+        print 'eta_{0} width={1:0.8e} GeV'.format('s', width['s'])
+        print 'eta_{0} width={1:0.8e} GeV'.format('t', width['t'])
+        print 'eta_{0} width={1:0.8e} GeV'.format('b', width['b'])
