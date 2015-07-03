@@ -7,7 +7,7 @@ def quit(p):
     p.print_help()
     sys.exit()
 
-def wCalc(type, gQ, gDM, mMed, mDM):
+def swCalc(type, gQ, gDM, mMed, mDM):
     ''' 
         Calculates the total width for s-channel mediated dark matter:
         q              dark matter
@@ -17,7 +17,7 @@ def wCalc(type, gQ, gDM, mMed, mDM):
         q              dark matter
         Gamma_min = Gamma_DM + sum_q Gamma_qq
 
-        type: indicates whether the mediator has vector or axial-vector symmetry
+        type: indicates type of the mediator (scalar, pseudo, vector, axial)
         gQ: coupling of mediator to quarks
         gDM: coupling of mediator to dark matter
         mMed: mass of mediator in GeV
@@ -27,48 +27,140 @@ def wCalc(type, gQ, gDM, mMed, mDM):
     import sys
     import math as m
 
-    if not type == 'vector' and not type == 'axial':
-        print 'type must be axial or vector'
-        sys.exit()
+    # Partial width has the form: normFactor * ratioFunc * betaFact
 
-    # Partial width has the form: normFactor * ratioFunc * beta**exp
-
-    # Quark Partial Width Calculation
-    normFactorQQ = (3. * gQ**2 * mMed)/(12. * m.pi)
+    # Quark Partial Width Calculation. Calculate for each quark in list.
+    normFactorQQ = 1.
+    vev = 246.
+    betaExp = 0.
     quarkName = ['u', 'd', 'c', 's', 't', 'b']
     quarkMass = [2.55e-3, 5.04e-3, 1.42, 1.01e-1, 172., 4.70] # in GeV
-    ratioFuncQQ, betaQQ = list(), list()
-    betaExp = 0.
-    if type == 'vector':
-        betaExp = 0.5
-        ratioFuncQQ = [(1. + (2. * mass**2)/mMed**2) for mass in quarkMass]
-    else: # type is axial
-        betaExp = 1.5
-        ratioFuncQQ = [1. for mass in quarkMass]
-    for mass in quarkMass:
-        if mMed > 2.*mass:
-            betaQQ.append((1. - (2. * mass)**2/mMed**2)**betaExp)
-        else: 
-            betaQQ.append(0.)
-    Gamma_qq = [normFactorQQ * r * b for r, b in zip(ratioFuncQQ, betaQQ)]
+    ratioFuncQQ, betaQQ = list(), list() # lists containing entry for each quark
+    if type == 'vector' or type == 'axial':
+        normFactorQQ = (3. * gQ**2 * mMed)/(12. * m.pi)
+        if type == 'vector':
+            betaExp = 0.5
+            ratioFuncQQ = [(1. + (2. * mass**2)/mMed**2) for mass in quarkMass]
+        elif type == 'axial': 
+            betaExp = 1.5
+            ratioFuncQQ = [1. for mass in quarkMass]
+        for mass in quarkMass:
+            if mMed > 2.*mass:
+                betaQQ.append((1. - (2. * mass)**2/mMed**2)**betaExp)
+            else: 
+                betaQQ.append(0.)
+    elif type == 'scalar' or type == 'pseudo':
+        normFactorQQ = (3. * gQ**2 * mMed)/(8. * m.pi * vev**2)
+        if type == 'scalar':
+            betaExp = 1.5
+        elif type == 'pseudo':
+            betaExp = 0.5
+        for mass in quarkMass:
+            if mMed > 2.*mass:
+                betaQQ.append(1.)
+                ratioFuncQQ.append(mass**2 * 
+                                   (1. - (2. * mass)**2/mMed**2)**betaExp)
+            else: 
+                betaQQ.append(0.)
+                ratioFuncQQ.append(0.)
+    else:
+        print "Invalid type"
+        return 0
+    # sum over all quarks
+    Gamma_qq = [normFactorQQ * b * r for r, b in zip(ratioFuncQQ, betaQQ)]
     sumGamma_qq = 0.
     for w in Gamma_qq:
         sumGamma_qq += w
 
     # Dark Matter Partial Width Calculation
-    normFactorDM = (gDM**2 * mMed)/(12. * m.pi)
     ratioFuncDM = 0.
-    if type == 'vector':
-        ratioFuncDM = (1. + (2. * mDM**2)/mMed**2)
-    else: # type is axial 
-        ratioFuncDM = 1.
-    if mMed > 2.*mDM:
-        betaDM = (1. - (2. * mDM)**2/mMed**2)**betaExp
-    else:
-        betaDM = 0.
+    if type == 'vector' or type == 'axial':
+        normFactorDM = (gDM**2 * mMed)/(12. * m.pi)
+        if type == 'vector':
+            ratioFuncDM = (1. + (2. * mDM**2)/mMed**2)
+        elif type == 'axial': 
+            ratioFuncDM = 1.
+        if mMed > 2.*mDM:
+            betaDM = (1. - (2. * mDM)**2/mMed**2)**betaExp
+        else:
+            betaDM = 0.
+    if type == 'scalar' or type == 'pseudo':
+        normFactorDM = (gDM**2 * mMed)/(8. * m.pi)
+        if type == 'scalar':
+            betaExp = 1.5
+        elif type == 'pseudo':
+            betaExp = 0.5
+        ratioFuncDM = 0.
+        if mMed > 2.*mDM:
+            betaDM = 1.
+            ratioFuncDM = (1. - (2. * mDM)**2/mMed**2)**betaExp
+        else:
+            betaDM = 0.
+            ratioFuncDM = 0.
     Gamma_DM = normFactorDM * ratioFuncDM * betaDM
 
     return Gamma_DM + sumGamma_qq
+
+def twCalc(type, gQ, gDM, mMed, mDM):
+    ''' 
+        Calculates the total width for t-channel mediated dark matter:
+        q ============ dark matter
+               ||
+               || med.
+               ||
+        q ============ dark matter
+        Mediator is different for each type of quark. 
+        Simplify and assume that the mediators have all the same mass.
+
+        type: indicates type of the mediator (tchan)
+        gQ: coupling of mediator to quarks
+        gDM: coupling of mediator to dark matter
+        mMed: mass of mediator in GeV
+        mDM: mass of dark matter in GeV
+    '''
+
+    import sys
+    import math as m
+
+    if gQ != gDM:
+        print "gQ must equal gDM for t-channel"
+        return 0
+
+    # Partial width has the form: normFactor * massFactor * rootFactor
+
+    # Width Calculation. One mediator, one width for each quark in list.
+    normFactor = 1.
+    quarkMass = { 
+        'u': 2.55e-3,
+        'd': 5.04e-3,
+        'c': 1.42,
+        's': 1.01e-1,
+        't': 172.,
+        'b': 4.70,
+    }
+    width, massFactor, rootFactor = dict(), dict(), dict() 
+    if type == 'tchan':
+        normFactor = (gDM**2 * mMed)/(16. * m.pi)
+        mDMRatio = mDM/mMed
+        for quark in quarkMass:
+            mQRatio = quarkMass[quark]/mMed
+            if mMed > 2.*mDM and mMed > 2.*quarkMass[quark]:
+                massFactor[quark] = 1 - mDMRatio**2 - mQRatio**2
+                massDiff = mQRatio - mDMRatio
+                massSum = mQRatio + mDMRatio
+                rootFactor[quark] = (1. - massSum**2) * (1. - massDiff**2)
+            elif mMed > 2.*mDM: # implying mMed <= 2.*quarkMass[quark]
+                massFactor[quark] = 1 - mDMRatio**2
+                rootFactor[quark] = (1. - mDMRatio**2) * (1. - mDMRatio**2)
+            elif mMed > 2.*quarkMass[quark]: # implying mMed <= 2.*mDM
+                massFactor[quark] = 1 - mQRatio**2
+                rootFactor[quark] = (1. - mQRatio**2) * (1. - mQRatio**2)
+            else:
+                massFactor[quark] = 0.
+                rootFactor[quark] = 0.
+            width[quark] = normFactor * massFactor[quark] * m.sqrt(rootFactor[quark])
+
+    return width
 
 if __name__ == '__main__':
 
@@ -80,8 +172,18 @@ if __name__ == '__main__':
     '    //          \\\\ \n'
     '   q              dark matter \n'
     '   Gamma_min = Gamma_DM + sum_q Gamma_qq \n\n'
-    '   type: indicates whether the mediator has vector or '
-    ' axial-vector symmetry \n'
+
+    ' for t-channel mediated dark matter: \n'
+    '   q ============ dark matter \n'
+    '          || \n'
+    '          || med. \n'
+    '          || \n'
+    '   q ============ dark matter \n'
+    '   Mediator is different for each type of quark. \n'
+    '   Simplify and assume that t-chan mediators have all the same mass. \n\n'
+
+    '   type: indicates type of mediator: vector, axial, scalar, pseudo, '
+    ' tchan \n'
     '   gQ: coupling of mediator to quarks \n'
     '   gDM: coupling of mediator to dark matter \n'
     '   mMed: mass of mediator in GeV \n'
@@ -103,9 +205,16 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 1:
         quit(parser)
-    if not args.type == 'vector' and not args.type =='axial':
-        print '\ntype must be axial or vector\n\n'
+    if not (args.type == 'vector' or args.type == 'axial' or
+            args.type == 'scalar' or args.type == 'pseudo' or
+            args.type == 'tchan'):
+        print '\ntype must be axial, vector, scalar, pseudo, tchan\n\n'
         quit(parser)
 
-    print 'full mediator width={0:0.2f} GeV'.format(
-        wCalc(args.type, args.gQ, args.gDM, args.mMed, args.mDM))
+    if args.type != 'tchan':
+        print 'full mediator width={0:0.3e} GeV'.format(
+            swCalc(args.type, args.gQ, args.gDM, args.mMed, args.mDM))
+    else: # tchannel 
+        width = twCalc(args.type, args.gQ, args.gDM, args.mMed, args.mDM)
+        for q in width:
+            print 'eta_{0} width={1:0.8e} GeV'.format(q, width[q])

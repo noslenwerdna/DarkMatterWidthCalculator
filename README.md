@@ -13,3 +13,18 @@
         gDM: coupling of mediator to dark matter
         mMed: mass of mediator in GeV
         mDM: mass of dark matter in GeV
+
+        Calculates the total width for t-channel mediated dark matter:
+        q ============ dark matter
+               ||
+               || med.
+               ||
+        q ============ dark matter
+        Mediator is different for each type of quark. 
+        Simplify and assume that the mediators have all the same mass.
+
+        type: indicates type of the mediator (tchan)
+        gQ: coupling of mediator to quarks
+        gDM: coupling of mediator to dark matter
+        mMed: mass of mediator in GeV
+        mDM: mass of dark matter in GeV
