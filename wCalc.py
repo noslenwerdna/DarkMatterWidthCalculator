@@ -7,7 +7,7 @@ def quit(p):
     p.print_help()
     sys.exit()
 
-def swCalc(type, gQ, gDM, mMed, mDM):
+def swCalc(type, gQ, gL, gDM, mMed, mDM):
     ''' 
         Calculates the total width for s-channel mediated dark matter:
         q              dark matter
@@ -19,6 +19,7 @@ def swCalc(type, gQ, gDM, mMed, mDM):
 
         type: indicates type of the mediator (scalar, pseudo, vector, axial)
         gQ: coupling of mediator to quarks
+        gL: coupling of mediator to charged leptons (neutrino coupling fixed by gauge invariance)
         gDM: coupling of mediator to dark matter
         mMed: mass of mediator in GeV
         mDM: mass of dark matter in GeV
@@ -73,6 +74,36 @@ def swCalc(type, gQ, gDM, mMed, mDM):
     for w in Gamma_qq:
         sumGamma_qq += w
 
+    # Lepton Partial Width Calculation
+    leptonName = ['e', 'nu_e', 'mu', 'nu_mu', 'tau', 'nu_tau' ]
+    leptonMass = [ 0.5109989461e-3, 0, 105.6583745e-3, 0, 1.77686, 0] # in GeV
+    fLL = (gL**2)*mMed/(12*m.pi)
+    fNN = (gL**2)*mMed/(24*m.pi)
+    normFactorLL = [ fLL, fNN, fLL, fNN, fLL, fNN ]
+    betaFactorsLL = list() # lists containing entry for each lepton
+    sumGamma_ll = 0.
+    if type=='vector' or type=='axial':
+        for (i,mass) in enumerate(leptonMass):
+            if i%2==0:
+                zL = (mass/mMed)**2
+                if type=='vector':
+                    betaFactorsLL.append( ((1-(4*zL))**(1/2.))*(1+2*zL) )
+                elif type=='axial':
+                    betaFactorsLL.append( ((1-(4*zL))**(3/2.)) )
+                else:
+                    print "warning: lepton partial width not implemented for non-vector models"
+                    betaFactorsLL.append( 1 )
+            else:
+                betaFactorsLL.append( 1 )
+        if False: # debugging
+            print "lepton widths:"
+            for (name,mass,n,b) in zip(leptonName,leptonMass,normFactorLL,betaFactorsLL):
+                print name,n*b
+        # sum over all leptons
+        Gamma_ll = [n * b for n,b in zip(normFactorLL,betaFactorsLL)]
+        for w in Gamma_ll:
+            sumGamma_ll += w
+        
     # Dark Matter Partial Width Calculation
     ratioFuncDM = 0.
     if type == 'vector' or type == 'axial':
@@ -100,9 +131,9 @@ def swCalc(type, gQ, gDM, mMed, mDM):
             ratioFuncDM = 0.
     Gamma_DM = normFactorDM * ratioFuncDM * betaDM
 
-    return Gamma_DM + sumGamma_qq
+    return Gamma_DM + sumGamma_qq + sumGamma_ll
 
-def twCalc(type, gQ, gDM, mMed, mDM):
+def twCalc(type, gQ, gL, gDM, mMed, mDM):
     ''' 
         Calculates the total width for t-channel mediated dark matter:
         q ============ dark matter
@@ -115,6 +146,7 @@ def twCalc(type, gQ, gDM, mMed, mDM):
 
         type: indicates type of the mediator (tchan)
         gQ: coupling of mediator to quarks
+        gL: coupling of mediator to charged leptons (not implemented)
         gDM: coupling of mediator to dark matter
         mMed: mass of mediator in GeV
         mDM: mass of dark matter in GeV
@@ -187,6 +219,7 @@ if __name__ == '__main__':
     '   type: indicates type of mediator: vector, axial, scalar, pseudo, '
     ' tchan \n'
     '   gQ: coupling of mediator to quarks \n'
+    '   gL: coupling of mediator to charged leptons (neutrino coupling fixed by gauge invariance)\n'
     '   gDM: coupling of mediator to dark matter \n'
     '   mMed: mass of mediator in GeV \n'
     '   mDM: mass of dark matter in GeV \n', 
@@ -197,6 +230,8 @@ if __name__ == '__main__':
               'Must be vector, axial, scalar, pseudo, or tchan'))
     parser.add_argument(
         '--gQ', type=float, default=1., help='Coupling of mediator to quarks')
+    parser.add_argument(
+        '--gL', type=float, default=0., help='Coupling of mediator to charged leptons')
     parser.add_argument(
         '--gDM', type=float, default=1.,
         help='Coupling of mediator to dark matter')
@@ -216,9 +251,9 @@ if __name__ == '__main__':
 
     if args.type != 'tchan':
         print 'full mediator width={0:0.3e} GeV'.format(
-            swCalc(args.type, args.gQ, args.gDM, args.mMed, args.mDM))
+            swCalc(args.type, args.gQ, args.gL, args.gDM, args.mMed, args.mDM))
     else: # tchannel 
-        width = twCalc(args.type, args.gQ, args.gDM, args.mMed, args.mDM)
+        width = twCalc(args.type, args.gQ, args.gL, args.gDM, args.mMed, args.mDM)
         print 'eta_{0} width={1:0.3e} GeV'.format('u', width['u'])
         print 'eta_{0} width={1:0.3e} GeV'.format('d', width['d'])
         print 'eta_{0} width={1:0.3e} GeV'.format('c', width['c'])
